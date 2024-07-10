@@ -93,7 +93,7 @@ export default {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
             const processedRows = processRows(rows);
-            args[1] = JSON.stringify(processedRows);
+            args[1] = JSON.stringify("nothing");
         });
 
         // Hook into the `dispatch` method to handle new messages
