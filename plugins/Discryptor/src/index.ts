@@ -64,7 +64,6 @@ const handleContent = (content: any) => {
             content = content += " (❌)";
         }
         console.log("content=" + content);
-    }
     
     return content;
 };
