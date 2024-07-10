@@ -27,10 +27,13 @@ const handleContent = (content: Content[]) => {
     if (thing.type === "link" && thing.target)
       thing.target = decryptContent(thing.target);
 
-    if (typeof thing.content === "string") thing.content = decryptContent(thing.content);
+    if (typeof thing.content === "string" && thing.content.includes('U2FsdGVkX1')) thing.content = decryptContent(thing.content);
+    else {
+        thing.content += " EJIDFHSDIf(❌)";
+    }
   }
   console.log(content);
-  return content
+  return content;
 };
 
 export default function () {
@@ -40,13 +43,12 @@ export default function () {
     before("updateRows", DCDChatManager, (args) => {
       const rows = JSON.parse(args[1]);
       console.log(rows);
-      for (const row of rows)
-        if (row.message?.content)
+      for (const row of rows) {
+        // Check if row.message is not undefined before accessing row.message.content
+        if (row.message) {
           row.message.content = handleContent(row.message.content);
-        else {
-            row.message.content += " EJIDFHSDIf(❌)";
         }
-
+      }
 
       args[1] = JSON.stringify(rows);
     }),
