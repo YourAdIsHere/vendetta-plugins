@@ -2,14 +2,16 @@ import { findByProps } from "@vendetta/metro";
 import { ReactNative } from "@vendetta/metro/common";
 import CryptoJS from "crypto-js";
 import Settings from "./Settings";
+import * as importAll from "./components/history";
 import { storage } from "@vendetta/plugin";
 import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
 import { before, after } from "@vendetta/patcher";
+import { findByName, findByStoreName } from "@vendetta/metro";
+import { Embed, Message } from "vendetta-extras";
 
 // Define a placeholder for unpatching the methods
 let unpatchSendMessage: () => void;
-let unpatchUpdateRows: () => void;
 let unpatchDispatch: () => void;
 const DCDChatManager = ReactNative.NativeModules.DCDChatManager;
 
@@ -25,7 +27,7 @@ function encryptContent(content: string): string {
 }
 
 // Decrypt the message content
-function decryptContent(encryptedContent: string): string {
+export function decryptContent(encryptedContent: string): string {
     const key = getEncryptionKey();
     try {
         const bytes = CryptoJS.Blowfish.decrypt(encryptedContent, key);
@@ -33,17 +35,6 @@ function decryptContent(encryptedContent: string): string {
     } catch (error) {
         return "Failed to decrypt message";
     }
-}
-
-function decryptHistory(encryptedContent: string): string {
-    const key = getEncryptionKey();
-    try {
-        const bytes = CryptoJS.Blowfish.decrypt(encryptedContent, key);
-        return bytes.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-        return "Failed to decrypt message";
-    }
-    return encryptedContent;
 }
 
 // Check if the content is encrypted
@@ -62,39 +53,31 @@ const handleMessage = (msg: any) => {
     }
 };
 
-type Content = {
-    type?: "link";
-    content: Content[] | string;
-    target?: string;
-  };
-
-  const handleContent = (content: Content[]) => {
-    for (const thing of content) {
-      if (thing.type === "link" && thing.target)
-        thing.target = decryptHistory(thing.target);
-  
-      if (typeof thing.content === "string") thing.content = decryptHistory(thing.content);
-      else if (Array.isArray(thing.content))
-        thing.content = handleContent(thing.content);
-    }
-    return content;
-  };
-
-// Process messages in the `updateRows` method
-const processRows = (rows: any[]) => {
-    for (const row of rows) {
-        if (row.message?.content) {
-       row.message.content = handleContent(row.message.content);
-        console.log("row.message.content=" + row.message.content);
-        console.log("row.message=" + row.message);
-        }
-    }
-    console.log("rows=" + rows);
-    return rows;
-};
-
 export default {
     onLoad() {
+        const patches = [];
+const RowManager = findByName("RowManager");
+const blowfishString = "U2FsdGVkX1"
+
+patches.push(before("generate", RowManager.prototype, ([data]) => {
+  if (data.rowType !== 1) return;
+
+  let content = data.message.content as string;
+  if (!content?.length) return;
+  const matchIndex = content.startsWith(blowfishString);
+  if (matchIndex === undefined) content += " (❌)";
+  if (matchIndex !== undefined) content = decryptContent(content);
+
+  data.message.content = content;
+}));
+
+patches.push(after("generate", RowManager.prototype, ([data], row) => {
+  if (data.rowType !== 1) return;
+  const { content } = row.message as Message;
+  if (!Array.isArray(content)) return;
+}));
+
+const onUnload = () => patches.forEach((unpatch) => unpatch());
         console.log("Plugin is loading...");
 
         const MessageActions = findByProps('sendMessage', 'editMessage');
@@ -121,18 +104,6 @@ export default {
             }
         });
 
-        // Hook into the `updateRows` method to handle past messages
-        unpatchUpdateRows = before('updateRows', DCDChatManager, (args) => {
-            console.log("updateRows patched");
-            const rows = JSON.parse(args[1]);
-            for (const row of rows)
-                if (row.message?.content)
-                  row.message.content = handleContent(row.message.content);
-            console.log("processedRows=" + processRows)
-            args[1] = JSON.stringify(rows);
-            console.log("FINAL=" + JSON.stringify(rows));
-        });
-
         // Hook into the `dispatch` method to handle new messages
         unpatchDispatch = before('dispatch', Dispatcher, args => {
             console.log("dispatch patched");
@@ -147,7 +118,6 @@ export default {
     },
     onUnload: () => {
         if (unpatchSendMessage) unpatchSendMessage();
-        if (unpatchUpdateRows) unpatchUpdateRows();
         if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
     },
