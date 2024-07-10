@@ -4,7 +4,7 @@ import { getAssetIDByName } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
 import CryptoJS from "crypto-js";
 
-import settings from "./settings.tsx";
+import settings from './settings.tsx';
 
 const unpatch: () => boolean = () => false;
 
