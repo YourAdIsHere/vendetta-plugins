@@ -10,7 +10,7 @@ export default () => {
     // Default values for encryption key
     var encryptionKey = encryptionKey || 'your-encryption-key';
 
-    const [key, setKey] = useState(encryptionKey);
+    const [key, setKey] = useState(() => encryptionKey || 'default-encryption-key');
 
     return (
         <ReactNative.ScrollView>
