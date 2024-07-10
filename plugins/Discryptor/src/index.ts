@@ -43,7 +43,7 @@ const handleMessage = (msg: any) => {
         if (msg.content && isEncrypted(msg.content)) {
             msg.content = decryptContent(msg.content);
         } else {
-            msg.content = encryptContent(msg.content);
+           // msg.content = encryptContent(msg.content);
         }
     }
 };
