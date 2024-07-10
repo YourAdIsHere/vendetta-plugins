@@ -24,7 +24,7 @@ patches.push(before("generate", RowManager.prototype, ([data]) => {
 
   let content = data.message.content as string;
   if (!content?.length) return;
-  const matchIndex = content.match(blowfishString).index;
+  const matchIndex = content.match(blowfishString)?.index;
   if (matchIndex === undefined) content += " (❌)";
   if (matchIndex !== undefined) content = decryptContent(content);
 
