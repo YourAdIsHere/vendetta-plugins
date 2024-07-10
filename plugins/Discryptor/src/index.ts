@@ -49,11 +49,28 @@ const handleMessage = (msg: any) => {
     }
 };
 
+type Content = {
+    type?: "link";
+    content: Content[] | string;
+    target?: string;
+  };
+
+const handleContent = (content: Content[]) => {
+    for (const thing of content) {
+        if (typeof thing.content === "string" && thing.content.startsWith("U2FsdGVkX1")) {
+            thing.content = decryptContent(thing.content);
+        } else {
+            thing.content += " (❌)";
+        }
+    }
+    return content;
+};
+
 // Process messages in the `updateRows` method
 const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
-            handleMessage(row.message);
+            handleContent(row.message);
         }
     }
     return rows;
@@ -93,7 +110,7 @@ export default {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
             const processedRows = processRows(rows);
-            args[1] = JSON.stringify("nothing");
+            args[1] = JSON.stringify(processedRows);
         });
 
         // Hook into the `dispatch` method to handle new messages
