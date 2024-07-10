@@ -28,11 +28,9 @@ const handleContent = (content: Content[]) => {
       thing.target = decryptContent(thing.target);
 
     if (typeof thing.content === "string") thing.content = decryptContent(thing.content);
-    else if (Array.isArray(thing.content))
-      thing.content = handleContent(thing.content);
   }
   console.log(content);
-  return content;
+  return content.toString;
 };
 
 export default function () {
