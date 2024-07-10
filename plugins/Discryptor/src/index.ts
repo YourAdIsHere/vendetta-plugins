@@ -73,7 +73,7 @@ const handleContent = (content: Content[]) => {
 const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
-       row.message = handleContent(row.message);
+       row.message = handleMessage(row.message);
         console.log("row.message.content=" + row.message.content);
         console.log("row.message=" + row.message);
         }
