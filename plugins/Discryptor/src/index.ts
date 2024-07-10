@@ -59,12 +59,12 @@ export default {
         unpatch = patcher();
 
         console.log("Plugin is loading...");
-/*
+
         const MessageActions = findByProps('sendMessage', 'editMessage');
         const MessageStore = findByProps('getMessages');
         const Dispatcher = findByProps('dispatch');
-*/
-   /*     // Check for required methods
+
+       // Check for required methods
         if (!MessageActions || !MessageStore || !Dispatcher) {
             console.error("Failed to find required props.");
             return;
@@ -83,8 +83,7 @@ export default {
                 return showToast('Failed to encrypt message', getAssetId('Small'));
             }
         });
-*/
-       /* // Hook into the `dispatch` method to handle new messages
+       // Hook into the `dispatch` method to handle new messages
         unpatchDispatch = before('dispatch', Dispatcher, args => {
             console.log("dispatch patched");
             const [action] = args;
@@ -92,14 +91,14 @@ export default {
                 const message = action.message;
                 handleMessage(message);
             }
-        });*/
+        });
 
         console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
         unpatch?.()
-        //if (unpatchSendMessage) unpatchSendMessage();
-        //if (unpatchDispatch) unpatchDispatch();
+       if (unpatchSendMessage) unpatchSendMessage();
+        if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
     },
 

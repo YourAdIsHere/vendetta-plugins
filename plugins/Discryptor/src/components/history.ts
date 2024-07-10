@@ -29,7 +29,7 @@ const handleContent = (content: Content[]) => {
 
     if (typeof thing.content === "string" && thing.content.includes('U2FsdGVkX1')) thing.content = decryptContent(thing.content);
     else {
-        thing.content += " EJIDFHSDIf(❌)";
+        thing.content += " (❌)";
     }
   }
   console.log(content);
