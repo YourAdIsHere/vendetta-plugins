@@ -52,17 +52,6 @@ const handleMessage = (msg: any) => {
 
 export default {
     onLoad() {
-        const patches = new Array<() => void>();
-        patches.push(
-        before("updateRows", DCDChatManager, (args) => {
-            const rows = JSON.parse(args[1]);
-            for (const row of rows)
-              if (row.message?.content)
-                row.message.content = handleMessage(row.message.content);
-      
-            args[1] = JSON.stringify(rows);
-          }),
-        );
         console.log("Plugin is loading...");
 
         const MessageActions = findByProps('sendMessage', 'editMessage');
