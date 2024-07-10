@@ -70,7 +70,7 @@ const handleContent = (content: Content[]) => {
 const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
-         row.message.content = handleContent(row.message.content);
+         row.message.content = handleMessage(row.message.content);
         }
     }
     return rows;
