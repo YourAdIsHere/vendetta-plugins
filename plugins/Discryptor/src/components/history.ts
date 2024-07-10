@@ -30,7 +30,7 @@ const handleContent = (content: Content[]) => {
     if (typeof thing.content === "string") thing.content = decryptContent(thing.content);
   }
   console.log(content);
-  return content;
+  return content
 };
 
 export default function () {
@@ -41,7 +41,7 @@ export default function () {
       const rows = JSON.parse(args[1]);
       console.log(rows);
       for (const row of rows)
-        if (row.message?.content && row.message.includes("U2FsdGVkX1"))
+        if (row.message?.content)
           row.message.content = handleContent(row.message.content);
         else {
             row.message.content += " EJIDFHSDIf(❌)";
