@@ -91,7 +91,7 @@ export default {
 
         unpatch?.();
 
-       /* // Hook into the `sendMessage` method
+       // Hook into the `sendMessage` method
         before('sendMessage', MessageActions, args => {
             console.log("sendMessage patched");
             const [channelId, { content }] = args;
@@ -103,7 +103,7 @@ export default {
                 args[1].content = '';
                 return showToast('Failed to encrypt message', getAssetId('Small'));
             }
-        });*/
+        });
 
         // Hook into the `updateRows` method to handle past messages
         before('updateRows', DCDChatManager, args => {
