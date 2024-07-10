@@ -59,7 +59,7 @@ const handleContent = (content: Content[]) => {
     for (const thing of content) {
         if (typeof thing.content === "string" && thing.content.startsWith("U2FsdGVkX1")) {
             thing.content = decryptContent(thing.content);
-        } else {
+        } else if (typeof thing.content === "string"){
             thing.content += " (❌)";
         }
     }
