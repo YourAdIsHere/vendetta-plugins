@@ -41,9 +41,9 @@ function isEncrypted(content: string): boolean {
 // Handle message content for encryption/decryption
 const handleMessage = (msg: any) => {
     if (msg?.content) {
-        if (isEncrypted(msg.content)) {
+        if (typeof msg.content === 'string' && isEncrypted(msg.content)) {
             msg.content = decryptContent(msg.content);
-        } else {
+        } else if (typeof msg.content === 'string') {
             msg.content += " (❌)";
         }
     }
