@@ -84,10 +84,11 @@ export default {
             const rows = JSON.parse(args[1]);
             for (const row of rows)
                 if (row.message?.content) {
+                    console.log("message content: " + row.message.content);
+                    
                   row.message.content = handleMessage(row.message.content);
-            console.log("message content: " + row.message.content);
-            console.log("message content: " + row.message.content);
                 }
+            console.log(JSON.stringify(rows));
               args[1] = JSON.stringify(rows);
         });
 
