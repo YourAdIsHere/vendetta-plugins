@@ -7,7 +7,7 @@ import CryptoJS from "crypto-js";
 import { storage } from "@vendetta/plugin";
 
 export function decryptContent(encryptedContent: string): string {
-    const key = storage.encryptionKey || "default-encryption-key";
+    const key = "default-encryption-key";
     try {
         const bytes = CryptoJS.Blowfish.decrypt(encryptedContent, key);
         return bytes.toString(CryptoJS.enc.Utf8);
@@ -39,8 +39,9 @@ export default function () {
   patches.push(
     before("updateRows", DCDChatManager, (args) => {
       const rows = JSON.parse(args[1]);
+      console.log(rows);
       for (const row of rows)
-        if (row.message?.content && row.message.content.startsWith("U2FsdGVkX1"))
+        if (row.message?.content && row.message.content.includes("U2FsdGVkX1"))
           row.message.content = handleContent(row.message.content);
         else {
             row.message.content += " EJIDFHSDIf(❌)";

@@ -8,7 +8,7 @@ export default () => {
     useProxy(storage);
 
     // Default values for encryption key
-    storage.encryptionKey ??= 'your-encryption-key';
+    storage.encryptionKey ??= 'default-encryption-key';
 
     const [key, setKey] = React.useState(storage.encryptionKey);
 
