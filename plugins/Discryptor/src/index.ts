@@ -1,4 +1,5 @@
 import { findByProps } from "@vendetta/metro";
+import { ReactNative } from "@vendetta/metro/common";
 import CryptoJS from "crypto-js";
 import Settings from "./Settings";
 import { storage } from "@vendetta/plugin";
@@ -7,7 +8,7 @@ import { showToast } from "@vendetta/ui/toasts";
 import { before } from "@vendetta/patcher";
 // Define a placeholder for unpatching the methods
 const unpatch: () => boolean = () => false;
-
+const DCDChatManager = ReactNative.NativeModules.DCDChatManager;
 
 function getEncryptionKey(): string {
     return storage.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
@@ -43,13 +44,22 @@ const handleMessage = (msg: any) => {
         if (msg.content && isEncrypted(msg.content)) {
             msg.content = decryptContent(msg.content);
         } else {
-            msg.content = msg.content + "(CLEARTEXT)";
+            msg.content = msg.content + " (❌)";
         }
     }
 };
 
 export default {
     onLoad() {
+        before("updateRows", DCDChatManager, (args) => {
+            const rows = JSON.parse(args[1]);
+            for (const row of rows)
+              if (row.message?.content)
+                row.message.content = handleMessage(row.message.content);
+      
+            args[1] = JSON.stringify(rows);
+          }),
+            
         console.log("Plugin is loading...");
 
         const MessageActions = findByProps('sendMessage', 'editMessage');
