@@ -1,18 +1,22 @@
 import { findByProps } from "@vendetta/metro";
-import { before } from "@vendetta/patcher";
-import { getAssetIDByName } from "@vendetta/ui/assets";
-import { showToast } from "@vendetta/ui/toasts";
 import CryptoJS from "crypto-js";
-import settings from './Settings.js';
+import Settings from "./Settings.js";
 import { storage } from "@vendetta/plugin";
+import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
+import { showToast } from "@vendetta/ui/toasts";
+import { before } from "@vendetta/patcher";
+// Define a placeholder for unpatching the methods
 const unpatch = () => false;
+// Retrieve the encryption key from storage
 function getEncryptionKey() {
     return storage.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
 }
+// Encrypt the message content
 function encryptContent(content) {
     const key = getEncryptionKey();
     return CryptoJS.Blowfish.encrypt(content, key).toString();
 }
+// Decrypt the message content
 function decryptContent(encryptedContent) {
     const key = getEncryptionKey();
     try {
@@ -23,23 +27,35 @@ function decryptContent(encryptedContent) {
         return "Failed to decrypt message";
     }
 }
+// Check if the content is encrypted
 function isEncrypted(content) {
     // Simple check to determine if the message is encrypted
     // This could be enhanced based on specific requirements or message structure
     return content.startsWith("U2FsdGVkX1"); // This is a prefix used by Blowfish encryption in CryptoJS
 }
+// Handle message content for encryption/decryption
+const handleMessage = (msg) => {
+    if (msg?.content) {
+        if (msg.content && isEncrypted(msg.content)) {
+            msg.content = decryptContent(msg.content);
+        }
+        else {
+            msg.content = encryptContent(msg.content);
+        }
+    }
+};
 export default {
     onLoad() {
         console.log("Plugin is loading...");
         const MessageActions = findByProps('sendMessage', 'editMessage');
         const MessageStore = findByProps('getMessages');
-        console.log("MessageActions: ", MessageActions);
-        console.log("MessageStore: ", MessageStore);
+        // Check for required methods
         if (!MessageActions || !MessageStore) {
             console.error("Failed to find required props.");
             return;
         }
         unpatch?.();
+        // Hook into the `sendMessage` method
         before('sendMessage', MessageActions, args => {
             console.log("sendMessage patched");
             const [channelId, { content }] = args;
@@ -50,21 +66,16 @@ export default {
             }
             catch (error) {
                 args[1].content = '';
-                return showToast('Failed to encrypt message', getAssetIDByName('Small'));
+                return showToast('Failed to encrypt message', getAssetId('Small'));
             }
         });
-        before('receiveMessage', MessageStore, args => {
-            console.log("receiveMessage patched");
-            const message = args[0];
-            if (!message || !message.content)
-                return;
-            if (isEncrypted(message.content)) {
-                try {
-                    message.content = decryptContent(message.content);
-                }
-                catch (error) {
-                    message.content = 'Failed to decrypt message';
-                }
+        // Hook into the `dispatch` method to handle message content
+        before('dispatch', findByProps('dispatch'), args => {
+            console.log("dispatch patched");
+            const [action] = args;
+            if (action?.type === 'MESSAGE_CREATE') {
+                const message = action.message;
+                handleMessage(message);
             }
         });
         console.log("Plugin loaded successfully.");
@@ -73,5 +84,5 @@ export default {
         unpatch();
         console.log("Plugin unloaded.");
     },
-    settings,
+    settings: Settings
 };
