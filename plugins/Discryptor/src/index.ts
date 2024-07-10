@@ -9,37 +9,12 @@ import { showToast } from "@vendetta/ui/toasts";
 import { before, after } from "@vendetta/patcher";
 import { findByName, findByStoreName } from "@vendetta/metro";
 import { Embed, Message } from "vendetta-extras";
+import patcher from "./components/history";
 
 // Define a placeholder for unpatching the methods
 let unpatchSendMessage: () => void;
 let unpatchDispatch: () => void;
-const DCDChatManager = ReactNative.NativeModules.DCDChatManager;
-
-const patches = [];
-const RowManager = findByName("RowManager");
-const blowfishString = "U2FsdGVkX1"
-
-patches.push(before("generate", RowManager.prototype, ([data]) => {
-  if (data.rowType !== 1) return;
-
-  let content = data.message.content as string;
-  if (!content?.length) return;
-  const matchIndex = content.match(blowfishString)?.index;
-  if (matchIndex === undefined) content += " (❌)";
-  if (matchIndex !== undefined) content = decryptContent(content);
-
-  data.message.content = content;
-}));
-
-patches.push(after("generate", RowManager.prototype, ([data], row) => {
-  if (data.rowType !== 1) return;
-  const { content } = row.message as Message;
-  if (!Array.isArray(content)) return;
-
-}));
-
-export const onUnload = () => patches.forEach((unpatch) => unpatch());
-
+let unpatch: () => void;
 // Retrieve the encryption key from settings
 function getEncryptionKey(): string {
     return storage.encryptionKey || "default-encryption-key";
@@ -80,7 +55,9 @@ const handleMessage = (msg: any) => {
 
 export default {
     onLoad() {
-  
+        
+        unpatch = patcher();
+
         console.log("Plugin is loading...");
 
         const MessageActions = findByProps('sendMessage', 'editMessage');
@@ -120,6 +97,7 @@ export default {
         console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
+        unpatch?.()
         if (unpatchSendMessage) unpatchSendMessage();
         if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
