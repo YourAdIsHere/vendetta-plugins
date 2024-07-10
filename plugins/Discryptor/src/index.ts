@@ -31,12 +31,12 @@ patches.push(before("generate", RowManager.prototype, ([data]) => {
   data.message.content = content;
 }));
 
-patches.push(after("generate", RowManager.prototype, ([data], row) => {
+/*patches.push(after("generate", RowManager.prototype, ([data], row) => {
   if (data.rowType !== 1) return;
   const { content } = row.message as Message;
   if (!Array.isArray(content)) return;
 
-}));
+}));*/
 
 export const onUnload = () => patches.forEach((unpatch) => unpatch());
 
