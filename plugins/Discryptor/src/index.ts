@@ -51,17 +51,11 @@ const handleMessage = (msg: any) => {
     }
 };
 
-type Content = {
-    type?: "link";
-    content: Content[] | string;
-    target?: string;
-};
-
-const handleContent = (content: any) => {
+const handleContent = (content: string) => {
         if (typeof content === "string" && isEncrypted(content)) {
             content = decryptContent(content);
         } else if (typeof content === "string") {
-            content = content += " (❌)";
+           content += " (❌)";
         }
         console.log("content=" + content);
     
