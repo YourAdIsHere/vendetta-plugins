@@ -84,7 +84,7 @@ export default {
             }
         });
 
-        // Hook into the `dispatch` method to handle new messages
+       /* // Hook into the `dispatch` method to handle new messages
         unpatchDispatch = before('dispatch', Dispatcher, args => {
             console.log("dispatch patched");
             const [action] = args;
@@ -92,14 +92,14 @@ export default {
                 const message = action.message;
                 handleMessage(message);
             }
-        });
+        });*/
 
         console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
         unpatch?.()
         if (unpatchSendMessage) unpatchSendMessage();
-        if (unpatchDispatch) unpatchDispatch();
+        //if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
     },
 

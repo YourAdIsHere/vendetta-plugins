@@ -31,6 +31,7 @@ const handleContent = (content: Content[]) => {
     else if (Array.isArray(thing.content))
       thing.content = handleContent(thing.content);
   }
+  console.log(content);
   return content;
 };
 
