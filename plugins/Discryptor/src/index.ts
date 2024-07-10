@@ -5,10 +5,12 @@ import Settings from "./Settings";
 import { storage } from "@vendetta/plugin";
 import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
-import { before } from "@vendetta/patcher";
+import { before, after } from "@vendetta/patcher";
 
 // Define a placeholder for unpatching the methods
-const unpatch: () => boolean = () => false;
+let unpatchSendMessage: () => void;
+let unpatchUpdateRows: () => void;
+let unpatchDispatch: () => void;
 const DCDChatManager = ReactNative.NativeModules.DCDChatManager;
 
 // Retrieve the encryption key from settings
@@ -53,13 +55,13 @@ type Content = {
     type?: "link";
     content: Content[] | string;
     target?: string;
-  };
+};
 
 const handleContent = (content: Content[]) => {
     for (const thing of content) {
-        if (typeof thing.content === "string" && thing.content.startsWith("U2FsdGVkX1")) {
+        if (typeof thing.content === "string" && isEncrypted(thing.content)) {
             thing.content = decryptContent(thing.content);
-        } else if (typeof thing.content === "string"){
+        } else if (typeof thing.content === "string") {
             thing.content += " (❌)";
         }
     }
@@ -70,7 +72,7 @@ const handleContent = (content: Content[]) => {
 const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
-         row.message.content = handleContent(row.message.content);
+            handleMessage(row.message);
         }
     }
     return rows;
@@ -82,17 +84,16 @@ export default {
 
         const MessageActions = findByProps('sendMessage', 'editMessage');
         const MessageStore = findByProps('getMessages');
+        const Dispatcher = findByProps('dispatch');
 
         // Check for required methods
-        if (!MessageActions || !MessageStore) {
+        if (!MessageActions || !MessageStore || !Dispatcher) {
             console.error("Failed to find required props.");
             return;
         }
 
-        unpatch?.();
-
-       // Hook into the `sendMessage` method
-        before('sendMessage', MessageActions, args => {
+        // Hook into the `sendMessage` method
+        unpatchSendMessage = before('sendMessage', MessageActions, args => {
             console.log("sendMessage patched");
             const [channelId, { content }] = args;
             if (!content) return;
@@ -106,27 +107,29 @@ export default {
         });
 
         // Hook into the `updateRows` method to handle past messages
-        before('updateRows', DCDChatManager, args => {
+        unpatchUpdateRows = before('updateRows', DCDChatManager, args => {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
             const processedRows = processRows(rows);
             args[1] = JSON.stringify(processedRows);
         });
 
-       /* // Hook into the `dispatch` method to handle new messages
-        before('dispatch', findByProps('dispatch'), args => {
+        // Hook into the `dispatch` method to handle new messages
+        unpatchDispatch = before('dispatch', Dispatcher, args => {
             console.log("dispatch patched");
             const [action] = args;
             if (action?.type === 'MESSAGE_CREATE') {
                 const message = action.message;
                 handleMessage(message);
             }
-        });*/
+        });
 
         console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
-        unpatch();
+        if (unpatchSendMessage) unpatchSendMessage();
+        if (unpatchUpdateRows) unpatchUpdateRows();
+        if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
     },
 
