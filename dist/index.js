@@ -1,15 +1,13 @@
 import { findByProps } from "@vendetta/metro";
 import CryptoJS from "crypto-js";
-import Settings from "./Settings.js";
-import { storage } from "@vendetta/plugin";
+import Settings from "./Settings.tsx";
 import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
 import { before } from "@vendetta/patcher";
 // Define a placeholder for unpatching the methods
 const unpatch = () => false;
-// Retrieve the encryption key from storage
 function getEncryptionKey() {
-    return storage.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
+    return Settings.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
 }
 // Encrypt the message content
 function encryptContent(content) {
@@ -31,7 +29,7 @@ function decryptContent(encryptedContent) {
 function isEncrypted(content) {
     // Simple check to determine if the message is encrypted
     // This could be enhanced based on specific requirements or message structure
-    return content.startsWith("U2FsdGVkX1"); // This is a prefix used by Blowfish encryption in CryptoJS
+    return content.startsWith("U2FsdGVkX1");
 }
 // Handle message content for encryption/decryption
 const handleMessage = (msg) => {
