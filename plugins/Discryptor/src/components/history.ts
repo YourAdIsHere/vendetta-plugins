@@ -30,7 +30,7 @@ const handleContent = (content: Content[]) => {
     if (typeof thing.content === "string") thing.content = decryptContent(thing.content);
   }
   console.log(content);
-  return content.toString;
+  return content.toString();
 };
 
 export default function () {
@@ -40,8 +40,12 @@ export default function () {
     before("updateRows", DCDChatManager, (args) => {
       const rows = JSON.parse(args[1]);
       for (const row of rows)
-        if (row.message?.content)
+        if (row.message?.content && row.message.content.startsWith("U2FsdGVkX1"))
           row.message.content = handleContent(row.message.content);
+        else {
+            row.message.content += " EJIDFHSDIf(❌)";
+        }
+
 
       args[1] = JSON.stringify(rows);
     }),
