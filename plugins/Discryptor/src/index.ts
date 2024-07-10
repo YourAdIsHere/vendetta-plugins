@@ -49,6 +49,7 @@ const handleMessage = (msg: any) => {
     }
 };
 
+
 export default {
     onLoad() {
         const patches = new Array<() => void>();
@@ -87,6 +88,18 @@ export default {
                 args[1].content = '';
                 return showToast('Failed to encrypt message', getAssetId('Small'));
             }
+        });
+
+        before('updateRows', DCDChatManager, args => {
+            console.log("updateRows patched");
+            const rows = JSON.parse(args[1]);
+            for (const row of rows)
+                if (row.message?.content) {
+                  row.message.content = handleMessage(row.message.content);
+            console.log("message content: " + row.message.content);
+            console.log("message content: " + row.message.content);
+                }
+              args[1] = JSON.stringify(rows);
         });
 
         // Hook into the `dispatch` method to handle message content
