@@ -84,21 +84,21 @@ export default {
             }
         });
        // Hook into the `dispatch` method to handle new messages
-        unpatchDispatch = before('dispatch', Dispatcher, args => {
+     /*   unpatchDispatch = before('dispatch', Dispatcher, args => {
             console.log("dispatch patched");
             const [action] = args;
             if (action?.type === 'MESSAGE_CREATE') {
                 const message = action.message;
                 handleMessage(message);
             }
-        });
+        });*/
 
         console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
         unpatch?.()
        if (unpatchSendMessage) unpatchSendMessage();
-        if (unpatchDispatch) unpatchDispatch();
+       // if (unpatchDispatch) unpatchDispatch();
         console.log("Plugin unloaded.");
     },
 
