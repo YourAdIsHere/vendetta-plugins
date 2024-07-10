@@ -35,7 +35,7 @@ function decryptContent(encryptedContent: string): string {
 
 // Check if the content is encrypted
 function isEncrypted(content: string): boolean {
-    return content.startsWith("U2FsdGVkX1");  // Simple check for Blowfish encryption
+    return typeof content === 'string' && content.startsWith("U2FsdGVkX1");  // Simple check for Blowfish encryption
 }
 
 // Handle message content for encryption/decryption
@@ -92,7 +92,8 @@ export default {
         before('updateRows', DCDChatManager, args => {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
-            args[1] = JSON.stringify(processRows(rows));
+            const processedRows = processRows(rows);
+            args[1] = JSON.stringify(processedRows);
         });
 
         // Hook into the `dispatch` method to handle new messages
