@@ -65,6 +65,7 @@ const handleContent = (content: Content[]) => {
             thing.content += " (❌)";
         }
     }
+    console.log("content=" + content);
     return content;
 };
 
@@ -73,8 +74,10 @@ const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
         row.message.content = handleMessage(row.message.content);
+        console.log("row.message.content=" + row.message.content);
         }
     }
+    console.log("rows=" + rows);
     return rows;
 };
 
@@ -111,7 +114,9 @@ export default {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
             const processedRows = processRows(rows);
+            console.log("processedRows=" + processRows)
             args[1] = JSON.stringify(processedRows);
+            console.log("FINAL=" + JSON.stringify(processedRows));
         });
 
         // Hook into the `dispatch` method to handle new messages
