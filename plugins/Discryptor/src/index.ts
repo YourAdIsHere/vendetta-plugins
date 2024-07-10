@@ -57,15 +57,15 @@ type Content = {
     target?: string;
 };
 
-const handleContent = (content: Content[]) => {
-    for (const thing of content) {
-        if (typeof thing.content === "string" && isEncrypted(thing.content)) {
-            thing.content = decryptContent(thing.content);
-        } else if (typeof thing.content === "string") {
-            thing.content += " (❌)";
+const handleContent = (content: any) => {
+        if (typeof content === "string" && isEncrypted(content)) {
+            content = decryptContent(content);
+        } else if (typeof content === "string") {
+            content = content += " (❌)";
         }
+        console.log("content=" + content);
     }
-    console.log("content=" + content);
+    
     return content;
 };
 
@@ -73,7 +73,7 @@ const handleContent = (content: Content[]) => {
 const processRows = (rows: any[]) => {
     for (const row of rows) {
         if (row.message?.content) {
-       row.message.content = handleMessage(row.message.content);
+       row.message.content = handleContent(row.message.content);
         console.log("row.message.content=" + row.message.content);
         console.log("row.message=" + row.message);
         }
