@@ -39,11 +39,25 @@ function isChannelEncrypted(channelId: string): boolean {
 
 export default {
     onLoad() {
-        const MessageActions = findByProps("sendMessage", "editMessage");
-        const MessageStore = findByProps("getMessages");
+        console.log("Plugin is loading...");
+
+        const MessageActions = findByProps('sendMessage', 'editMessage');
+        const MessageStore = findByProps('getMessages');
+        const ChannelStore = findByProps('getChannel');
+
+        console.log("MessageActions: ", MessageActions);
+        console.log("MessageStore: ", MessageStore);
+        console.log("ChannelStore: ", ChannelStore);
+
+        if (!MessageActions || !MessageStore || !ChannelStore) {
+            console.error("Failed to find required props.");
+            return;
+        }
 
         unpatch?.();
-        before("sendMessage", MessageActions, args => {
+
+        before('sendMessage', MessageActions, args => {
+            console.log("sendMessage patched");
             const [channelId, { content }] = args;
             if (!content) return;
 
@@ -51,18 +65,18 @@ export default {
                 try {
                     args[1].content = encryptContent(content);
                 } catch (error) {
-                    args[1].content = "";
-                    return showToast("Failed to encrypt message", getAssetIDByName("Small"));
+                    args[1].content = '';
+                    return showToast('Failed to encrypt message', getAssetIDByName('Small'));
                 }
             }
         });
 
-        // Decrypt incoming messages
-        before("receiveMessage", MessageStore, args => {
+        before('receiveMessage', MessageStore, args => {
+            console.log("receiveMessage patched");
             const message = args[0];
             if (!message || !message.content) return;
 
-            const channelId = message.channel_id || message.channel?.id; // Get the channel ID from the message
+            const channelId = message.channel_id || message.channel?.id;
 
             if (isChannelEncrypted(channelId)) {
                 try {
@@ -70,13 +84,16 @@ export default {
                         message.content = decryptContent(message.content);
                     }
                 } catch (error) {
-                    message.content = "Failed to decrypt message";
+                    message.content = 'Failed to decrypt message';
                 }
             }
         });
+
+        console.log("Plugin loaded successfully.");
     },
     onUnload: () => {
         unpatch();
+        console.log("Plugin unloaded.");
     },
     settings,
 };
