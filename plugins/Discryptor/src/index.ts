@@ -24,7 +24,7 @@ patches.push(before("generate", RowManager.prototype, ([data]) => {
 
   let content = data.message.content as string;
   if (!content?.length) return;
-  const matchIndex = content.startsWith(blowfishString);
+  const matchIndex = content.match(blowfishString).index;
   if (matchIndex === undefined) content += " (❌)";
   if (matchIndex !== undefined) content = decryptContent(content);
 
@@ -32,9 +32,10 @@ patches.push(before("generate", RowManager.prototype, ([data]) => {
 }));
 
 patches.push(after("generate", RowManager.prototype, ([data], row) => {
-    if (!row || !row.message) return;
+  if (data.rowType !== 1) return;
   const { content } = row.message as Message;
   if (!Array.isArray(content)) return;
+
 }));
 
 export const onUnload = () => patches.forEach((unpatch) => unpatch());
