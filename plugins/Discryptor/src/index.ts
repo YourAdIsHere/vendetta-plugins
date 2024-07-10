@@ -35,6 +35,17 @@ function decryptContent(encryptedContent: string): string {
     }
 }
 
+function decryptHistory(encryptedContent: string): string {
+    const key = getEncryptionKey();
+    try {
+        const bytes = CryptoJS.Blowfish.decrypt(encryptedContent, key);
+        return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+        return "Failed to decrypt message";
+    }
+    return encryptedContent;
+}
+
 // Check if the content is encrypted
 function isEncrypted(content: string): boolean {
     return typeof content === 'string' && content.startsWith("U2FsdGVkX1");  // Simple check for Blowfish encryption
@@ -51,16 +62,23 @@ const handleMessage = (msg: any) => {
     }
 };
 
-const handleContent = (content: string) => {
-        if (typeof content === "string" && isEncrypted(content)) {
-            content = decryptContent(content);
-        } else if (typeof content === "string") {
-           content += " (❌)";
-        }
-        console.log("content=" + content);
-    
+type Content = {
+    type?: "link";
+    content: Content[] | string;
+    target?: string;
+  };
+
+  const handleContent = (content: Content[]) => {
+    for (const thing of content) {
+      if (thing.type === "link" && thing.target)
+        thing.target = decryptHistory(thing.target);
+  
+      if (typeof thing.content === "string") thing.content = decryptHistory(thing.content);
+      else if (Array.isArray(thing.content))
+        thing.content = handleContent(thing.content);
+    }
     return content;
-};
+  };
 
 // Process messages in the `updateRows` method
 const processRows = (rows: any[]) => {
@@ -104,13 +122,15 @@ export default {
         });
 
         // Hook into the `updateRows` method to handle past messages
-        unpatchUpdateRows = before('updateRows', DCDChatManager, args => {
+        unpatchUpdateRows = before('updateRows', DCDChatManager, (args) => {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
-            const processedRows = processRows(rows);
+            for (const row of rows)
+                if (row.message?.content)
+                  row.message.content = handleContent(row.message.content);
             console.log("processedRows=" + processRows)
-            args[1] = JSON.stringify(processedRows);
-            console.log("FINAL=" + JSON.stringify(processedRows));
+            args[1] = JSON.stringify(rows);
+            console.log("FINAL=" + JSON.stringify(rows));
         });
 
         // Hook into the `dispatch` method to handle new messages
