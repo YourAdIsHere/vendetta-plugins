@@ -6,12 +6,14 @@ import { storage } from "@vendetta/plugin";
 import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
 import { before } from "@vendetta/patcher";
+
 // Define a placeholder for unpatching the methods
 const unpatch: () => boolean = () => false;
 const DCDChatManager = ReactNative.NativeModules.DCDChatManager;
 
+// Retrieve the encryption key from settings
 function getEncryptionKey(): string {
-    return storage.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
+    return storage.encryptionKey || "default-encryption-key";
 }
 
 // Encrypt the message content
@@ -33,22 +35,29 @@ function decryptContent(encryptedContent: string): string {
 
 // Check if the content is encrypted
 function isEncrypted(content: string): boolean {
-    // Simple check to determine if the message is encrypted
-    // This could be enhanced based on specific requirements or message structure
-    return content.startsWith("U2FsdGVkX1"); 
+    return content.startsWith("U2FsdGVkX1");  // Simple check for Blowfish encryption
 }
 
 // Handle message content for encryption/decryption
 const handleMessage = (msg: any) => {
     if (msg?.content) {
-        if (msg.content && isEncrypted(msg.content)) {
+        if (isEncrypted(msg.content)) {
             msg.content = decryptContent(msg.content);
         } else {
-            msg.content = msg.content + " (❌)";
+            msg.content += " (❌)";
         }
     }
 };
 
+// Process messages in the `updateRows` method
+const processRows = (rows: any[]) => {
+    for (const row of rows) {
+        if (row.message?.content) {
+            handleMessage(row.message);
+        }
+    }
+    return rows;
+};
 
 export default {
     onLoad() {
@@ -79,20 +88,14 @@ export default {
             }
         });
 
+        // Hook into the `updateRows` method to handle past messages
         before('updateRows', DCDChatManager, args => {
             console.log("updateRows patched");
             const rows = JSON.parse(args[1]);
-            for (const row of rows)
-                if (row.message?.content) {
-                    console.log("message content: " + row.message.content);
-                    const modifiedContent = handleMessage(row.message.content);
-                    row.message = { ...row.message, content: modifiedContent };
-                }
-            console.log("final content:" + JSON.stringify(rows));
-            args[1] = JSON.stringify(rows);
+            args[1] = JSON.stringify(processRows(rows));
         });
 
-        // Hook into the `dispatch` method to handle message content
+        // Hook into the `dispatch` method to handle new messages
         before('dispatch', findByProps('dispatch'), args => {
             console.log("dispatch patched");
             const [action] = args;
