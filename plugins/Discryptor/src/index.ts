@@ -85,11 +85,11 @@ export default {
             for (const row of rows)
                 if (row.message?.content) {
                     console.log("message content: " + row.message.content);
-                    
-                  row.message.content = handleMessage(row.message.content);
+                    const modifiedContent = handleMessage(row.message.content);
+                    row.message = { ...row.message, content: modifiedContent };
                 }
-            console.log(JSON.stringify(rows));
-              args[1] = JSON.stringify(rows);
+            console.log("final content:" + JSON.stringify(rows));
+            args[1] = JSON.stringify(rows);
         });
 
         // Hook into the `dispatch` method to handle message content
