@@ -1,6 +1,6 @@
 import { findByProps } from "@vendetta/metro";
 import CryptoJS from "crypto-js";
-import Settings from "./Settings.js";
+import Settings from "./Settings";
 import { storage } from "@vendetta/plugin";
 import { getAssetIDByName as getAssetId } from "@vendetta/ui/assets";
 import { showToast } from "@vendetta/ui/toasts";
