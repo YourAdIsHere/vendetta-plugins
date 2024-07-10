@@ -10,7 +10,7 @@ const unpatch: () => boolean = () => false;
 
 
 function getEncryptionKey(): string {
-    return Settings.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
+    return storage.encryptionKey || "default-encryption-key"; // Retrieve the encryption key from settings
 }
 
 // Encrypt the message content
